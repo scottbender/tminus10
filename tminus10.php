@@ -238,23 +238,28 @@ function getNextLaunches($amount){
 
 function getLaunch($launchID){
 	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/".$launchID."/");
-	$data = json_decode($json, true);
-
-	if(isset($data['launches'])){
-		return $data['launches'][0];
+	# can fail with an html error page; should check status code
+	if(strstr($json, '<title>Server Error (500)</title>') !== FALSE){
+		return false;
 	}
 
+	$data = json_decode($json, true);
+	# can fail with: {"detail":"Not found."}
+	if(isset($data['detail'])){
 	return false;
+	}
+
+	return $data;
 }
 
 function getSpaceX($amount){
-	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/?search=SpaceX&limit=".$limit);
+	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/?search=SpaceX&limit=".$amount);
 	$data = json_decode($json, true);
 
-	if(isset($data['launches'])){
+	if(isset($data['results'])){
 		$result = [];
 
-		foreach($data['launches'] AS $launch){
+		foreach($data['results'] AS $launch){
 			$result[] = getLaunch($launch['id']);
 		}
 
