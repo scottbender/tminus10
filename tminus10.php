@@ -226,7 +226,7 @@ function httpRequest($url){
 }
 
 function getNextLaunches($amount){
-	$json = httpRequest("https://ll.thespacedevs.com/2.0.0/launch/upcoming/");
+	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/upcoming/");
 	$data = json_decode($json, true);
 
 	if(isset($data['launches'])){
@@ -237,7 +237,7 @@ function getNextLaunches($amount){
 }
 
 function getLaunch($launchID){
-	$json = httpRequest("https://ll.thespacedevs.com/2.0.0/launch/".$launchID."/");
+	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/".$launchID."/");
 	$data = json_decode($json, true);
 
 	if(isset($data['launches'])){
@@ -248,7 +248,7 @@ function getLaunch($launchID){
 }
 
 function getSpaceX($amount){
-	$json = httpRequest("https://ll.thespacedevs.com/2.0.0/launch/?search=SpaceX&limit=".$limit);
+	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/?search=SpaceX&limit=".$limit);
 	$data = json_decode($json, true);
 
 	if(isset($data['launches'])){
@@ -329,11 +329,11 @@ while(1){
 
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
-			$json = httpRequest('https://launchlibrary.net/1.2/launch/next/5');
+			$json = httpRequest('https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=5');
 			$info = json_decode($json, true);
 
-			if(isset($info['launches'])){
-				$cached_launches = $info['launches'];
+			if(isset($info['results'])){
+				$cached_launches = $info['results'];
 			}
 
 			$nextupdate = time() + 300;
@@ -412,18 +412,18 @@ while(1){
 
 			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launch"){
 				if(!trim($param) || !is_numeric($param)){
-					$url = 'https://launchlibrary.net/1.2/launch/next/1';
+					$url = 'https://lldev.thespacedevs.com/2.0.0/launch/upcoming/?limit=1';
 				} else {
-					$url = 'https://launchlibrary.net/1.2/launch/'.$param;
+					msg('unsupported for now');
 				}
 
 				$json = httpRequest($url);
 				$info = json_decode($json, true);
 
-				if(isset($info['status']) || !isset($info['launches'])){
+				if(isset($info['status']) || !isset($info['results'])){
 					msg('Unable to find a launch with that ID.');
 				} else {
-					$launch = $info['launches'][0];
+					$launch = $info['results'][0];
 
 					sendLaunchMessage($launch, true);
 				}
