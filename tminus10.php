@@ -297,20 +297,20 @@ function sendLaunchMessage($launch, $extended = false){
 	msg($launch_message);
 
 	if($extended){
-		if(isset($launch['missions'][0])){
-			msg(color(2, 'Mission: ' ).$launch['missions'][0]['description']);
+		if(isset($launch['mission'])){
+			msg(color(2, 'Mission: ' ).$launch['mission']['description']);
 		}
 
-		if(trim($launch['windowstart']) && trim($launch['windowstart'])){
-			if($launch['windowstart'] == $launch['windowend']){
-				msg(color(2, 'Time: ' ).$launch['windowstart']);
+		if(trim($launch['window_start']) && trim($launch['window_end'])){
+			if($launch['window_start'] == $launch['window_end']){
+				msg(color(2, 'Time: ' ).$launch['window_start']);
 			} else {
-				msg(color(2, 'Window: ' ).$launch['windowstart'].' - '.$launch['windowend']);
+				msg(color(2, 'Window: ' ).$launch['window_start'].' - '.$launch['window_end']);
 			}
 		}
 
-		if(isset($launch['location']['pads'][0])){
-			msg(color(2, 'Location: ' ).$launch['location']['pads'][0]['name']);
+		if(isset($launch['pad'])){
+			msg(color(2, 'Location: ' ).$launch['pad']['name']);
 		}
 	}
 }
