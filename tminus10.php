@@ -228,7 +228,7 @@ function httpRequest($url){
 function apiRequest($path, $querystring){
 	$server = "lldev.thespacedevs.com";
 	#$server = "ll.thespacedevs.com";
-	$version = "2.0.0";
+	$version = "2.2.0";
 	$url = "https://$server/$version/$path$querystring";
 
 	$response = httpRequest($url);
