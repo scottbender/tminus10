@@ -261,16 +261,10 @@ function getLaunch($launchID){
 }
 
 function getSpaceX($amount){
-	$data = apiRequest('launch/', '?search=SpaceX&limit='.$amount);
+	$data = apiRequest('launch/', '?search=SpaceX&mode=detailed&limit='.$amount);
 
 	if(isset($data['results'])){
-		$result = [];
-
-		foreach($data['results'] AS $launch){
-			$result[] = getLaunch($launch['id']);
-		}
-
-		return $result;
+		return $data['results'];
 	}
 
 	return false;
