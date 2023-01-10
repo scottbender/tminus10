@@ -226,11 +226,11 @@ function httpRequest($url){
 }
 
 function getNextLaunches($amount){
-	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/upcoming/");
+	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/upcoming/?limit=".$amount);
 	$data = json_decode($json, true);
 
-	if(isset($data['launches'])){
-		return $data['launches'];
+	if(isset($data['results'])){
+		return $data['results'];
 	}
 
 	return false;
