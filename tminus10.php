@@ -225,9 +225,29 @@ function httpRequest($url){
     return $result;
 }
 
+function apiRequest($path, $querystring){
+	$server = "lldev.thespacedevs.com";
+	#$server = "ll.thespacedevs.com";
+	$version = "2.0.0";
+	$url = "https://$server/$version/$path$querystring";
+
+	$response = httpRequest($url);
+	if(strstr($response, '<title>Server Error (500)</title>') !== FALSE){
+		return false;
+	}
+
+	$json = json_decode($response, true);
+	# can fail with: {"detail":"Not found."}
+	# or: {"detail":"Request was throttled. Expected available in 350 seconds."}
+	if(isset($data['detail'])){
+		return false;
+	}
+
+	return $json;
+}
+
 function getNextLaunches($amount){
-	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/upcoming/?limit=".$amount);
-	$data = json_decode($json, true);
+	$data = apiRequest('launch/upcoming/', '?limit='.$amount);
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -237,24 +257,11 @@ function getNextLaunches($amount){
 }
 
 function getLaunch($launchID){
-	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/".$launchID."/");
-	# can fail with an html error page; should check status code
-	if(strstr($json, '<title>Server Error (500)</title>') !== FALSE){
-		return false;
-	}
-
-	$data = json_decode($json, true);
-	# can fail with: {"detail":"Not found."}
-	if(isset($data['detail'])){
-	return false;
-	}
-
-	return $data;
+	return apiRequest('launch/'.$launchID.'/', '');
 }
 
 function getSpaceX($amount){
-	$json = httpRequest("https://lldev.thespacedevs.com/2.0.0/launch/?search=SpaceX&limit=".$amount);
-	$data = json_decode($json, true);
+	$data = apiRequest('launch/', '?search=SpaceX&limit='.$amount);
 
 	if(isset($data['results'])){
 		$result = [];
@@ -334,8 +341,7 @@ while(1){
 
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
-			$json = httpRequest('https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=5');
-			$info = json_decode($json, true);
+			$info = apiRequest('launch/upcoming/', '?limit=5');
 
 			if(isset($info['results'])){
 				$cached_launches = $info['results'];
