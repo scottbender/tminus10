@@ -422,14 +422,13 @@ while(1){
 			}
 
 			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launch"){
-				if(!trim($param) || !is_numeric($param)){
-					$url = 'https://lldev.thespacedevs.com/2.0.0/launch/upcoming/?limit=1';
-				} else {
-					msg('unsupported for now');
-				}
+				$info = [];
 
-				$json = httpRequest($url);
-				$info = json_decode($json, true);
+				if(!trim($param) || !is_numeric($param)){
+					$info = apiRequest('launch/upcoming/', '?limit=1');
+				} else {
+					$info = apiRequest('launch/upcoming/', '?limit=1&search='.urlencode($param));
+				}
 
 				if(isset($info['status']) || !isset($info['results'])){
 					msg('Unable to find a launch with that ID.');
