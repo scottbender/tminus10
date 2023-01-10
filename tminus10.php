@@ -246,6 +246,14 @@ function apiRequest($path, $querystring){
 	return $json;
 }
 
+function is_uuid($str){
+	$regex = '/^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/';
+	if(preg_match($regex, $str) === 1) {
+		return true;
+	}
+	return false;
+}
+
 function getNextLaunches($amount){
 	$data = apiRequest('launch/upcoming/', '?limit='.$amount);
 
@@ -418,17 +426,26 @@ while(1){
 			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launch"){
 				$info = [];
 
-				if(!trim($param) || !is_numeric($param)){
-					$info = apiRequest('launch/upcoming/', '?limit=1');
+				if(trim($param)){
+					if(is_uuid($param)){
+						$info = apiRequest('launch/'.$param.'/', '');
+					} else {
+						$info = apiRequest('launch/upcoming/', '?limit=1&search='.urlencode($param));
+					}
 				} else {
-					$info = apiRequest('launch/upcoming/', '?limit=1&search='.urlencode($param));
+					$info = apiRequest('launch/upcoming/', '?limit=1');
 				}
 
-				if(isset($info['status']) || !isset($info['results'])){
-					msg('Unable to find a launch with that ID.');
-				} else {
+				$launch = null;
+				if(isset($info['count']) && $info['count'] > 0){
 					$launch = $info['results'][0];
+				} else if(isset($info['id'])){
+					$launch = $info;
+				} else {
+					msg('Unable to find a launch with that ID.');
+				}
 
+				if($launch !== null){
 					sendLaunchMessage($launch, true);
 				}
 			}
