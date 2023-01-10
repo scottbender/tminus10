@@ -1,0 +1,487 @@
+<?php
+function getConnection(){
+	global $socket;
+	global $started;
+
+        $ctx = stream_context_create( array( 'ssl' => array( 'verify_peer' => FALSE, 'allow_self_signed' => TRUE ), 'socket' => array('bindto' => '0:0') ) );
+
+	$socket = stream_socket_client(
+		'ssl://irc.oftc.net:6697' , $errno , $errstr,
+		5,
+		STREAM_CLIENT_ASYNC_CONNECT|STREAM_CLIENT_CONNECT , $ctx
+	);
+
+	usleep( 50000 );
+
+	if($socket == false){
+		return false;
+	} else {
+		say('USER TMinus10 127.0.0.1 irc.jc-mp.com I\'m a bot');
+		say('NICK TMinus10');
+
+		$started = false;
+
+		return true;
+	}
+}
+
+function secondsToTime($seconds) {
+	$units = array(
+		"year"   => 365*24*3600,
+		"month"  =>  31*24*3600,
+		"week"   =>   7*24*3600,
+		"day"    =>     24*3600,
+		"hour"   =>        3600,
+		"minute" =>          60,
+		"second" =>           1,
+	);
+
+	// specifically handle zero
+	if ( $seconds == 0 ) return "0 seconds";
+
+	$s = "";
+	$count = 0;
+
+	foreach ( $units as $name => $divisor ) {
+		if ( $quot = intval($seconds / $divisor) ) {
+			if($count == 3){
+				break;
+			}
+
+			$s .= "$quot $name";
+			$s .= (abs($quot) > 1 ? "s" : "") . ", ";
+			$seconds -= $quot * $divisor;
+
+			$count++;
+		}
+	}
+
+	return substr($s, 0, -2);
+}
+
+function strtolower_utf8($inputString) {
+    $outputString    = utf8_decode($inputString);
+    $outputString    = strtolower($outputString);
+    $outputString    = utf8_encode($outputString);
+    return $outputString;
+}
+
+function connectToServer(){
+	echo "Connecting.. ";
+	$result = getConnection();
+
+	while($result == false){
+		echo "Failed, retrying in 5 seconds..\n";
+		sleep(5);
+		echo "Connecting.. ";
+		$result = getConnection();
+	}
+
+	echo "Done!\n";
+}
+
+function color($color, $text){
+	return chr(3).$color.$text.chr(3);
+}
+
+function bold($text){
+	return chr(2).$text.chr(2);
+}
+
+function say($data) {
+	global $socket;
+
+	fwrite($socket,$data."\r\n");
+}
+
+function param($array){
+	unset($array[0]);
+	unset($array[1]);
+	unset($array[2]);
+	unset($array[3]);
+
+	return implode(" ", $array);
+}
+
+function getData($url){
+	global $ctx;
+
+	$cache = "/home/bots/cache/".sha1($url).".json";
+
+	if(file_exists($cache)){
+		$seconds = time() - filemtime($cache);
+
+		if($seconds >= 10){
+			unlink($cache);
+		} else {
+			$data = file_get_contents($cache);
+		}
+	}
+
+	if(!isset($data)){
+		$data = file_get_contents("http://live.mobileapp.fifa.com/api/wc/".$url, 0, $ctx);
+
+		if(!$data) return false;
+	}
+
+	$result = json_decode($data, true);
+
+	if(!$result || !isset($result['success']) || !$result['success']){
+		return false;
+	}
+
+	file_put_contents($cache, $data);
+
+	return $result['data'];
+}
+
+function ago($time, $short = false)
+{
+	$then = new DateTime($time);
+	$now = new DateTime();
+	$delta = $then->diff($now);
+
+	$quantities = array(
+		'day' => $delta->d,
+		'hour' => $delta->h,
+		'minute' => $delta->i,
+		'second' => $delta->s);
+
+	if($short){
+		$quantities = array(
+		'd' => $delta->d,
+		'h' => $delta->h,
+		'm' => $delta->i,
+		's' => $delta->s);
+	}
+
+	$str = '';
+	foreach($quantities as $unit => $value) {
+		if($value == 0) continue;
+		$str .= $value . ' ' . $unit;
+		if($value != 1 && !$short) {
+			$str .= 's';
+		}
+		$str .=  ', ';
+	}
+
+	if(time() > strtotime($time)) $str = '';
+
+	$str = $str == '' ? 'a moment' : substr($str, 0, -2);
+
+    if($short){
+		$str = str_replace(" ", "", $str);
+		$str = str_replace(",", "", $str);
+    }
+
+	return $str;
+}
+
+function suffix($number){
+	$ends = array('th','st','nd','rd','th','th','th','th','th','th');
+	if (($number %100) >= 11 && ($number%100) <= 13)
+	   $abbreviation = $number. 'th';
+	else
+	   $abbreviation = $number. $ends[$number % 10];
+
+   return $abbreviation;
+}
+
+function msg($message){
+	global $channel;
+
+	say("PRIVMSG ".$channel." :".$message);
+}
+
+function message($array){
+	unset($array[0]);
+	unset($array[1]);
+	unset($array[2]);
+
+	return substr(implode(" ", $array), 1);
+}
+
+function httpRequest($url){
+	$cache = "/home/bots/cache/".sha1($url).".json";
+
+	if(file_exists($cache)){
+		$seconds = time() - filemtime($cache);
+
+		if($seconds >= 10){
+			unlink($cache);
+		} else {
+			$data = file_get_contents($cache);
+		}
+	}
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_USERAGENT, "PHP");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    return $result;
+}
+
+function getNextLaunches($amount){
+	$json = httpRequest("https://ll.thespacedevs.com/2.0.0/launch/upcoming/");
+	$data = json_decode($json, true);
+
+	if(isset($data['launches'])){
+		return $data['launches'];
+	}
+
+	return false;
+}
+
+function getLaunch($launchID){
+	$json = httpRequest("https://ll.thespacedevs.com/2.0.0/launch/".$launchID."/");
+	$data = json_decode($json, true);
+
+	if(isset($data['launches'])){
+		return $data['launches'][0];
+	}
+
+	return false;
+}
+
+function getSpaceX($amount){
+	$date = date("Y-m-d", strtotime("-24 hours"));
+	$json = httpRequest("https://ll.thespacedevs.com/2.0.0/launch/?search=SpaceX&limit=".$limit);
+	$data = json_decode($json, true);
+
+	if(isset($data['launches'])){
+		$result = [];
+
+		foreach($data['launches'] AS $launch){
+			$result[] = getLaunch($launch['id']);
+		}
+
+		return $result;
+	}
+
+	return false;
+}
+
+function sendLaunchMessage($launch, $extended = false){
+	$seconds = strtotime($launch['isonet']) - time();
+
+	$launch_message = color(7, "#".$launch['id'].": ");
+	$launch_message .= color(3, $launch['name']);
+
+	if($seconds > 0){
+		$when = secondsToTime($seconds);
+
+		$launch_message .= color(4, " in ".$when);
+	}
+
+	if(isset($launch['vidURLs'][0])){
+		$launch_message .= " - watch it at ".$launch['vidURLs'][0];
+	}
+
+	msg($launch_message);
+
+	if($extended){
+		if(isset($launch['missions'][0])){
+			msg(color(2, 'Mission: ' ).$launch['missions'][0]['description']);
+		}
+
+		if(trim($launch['windowstart']) && trim($launch['windowstart'])){
+			if($launch['windowstart'] == $launch['windowend']){
+				msg(color(2, 'Time: ' ).$launch['windowstart']);
+			} else {
+				msg(color(2, 'Window: ' ).$launch['windowstart'].' - '.$launch['windowend']);
+			}
+		}
+
+		if(isset($launch['location']['pads'][0])){
+			msg(color(2, 'Location: ' ).$launch['location']['pads'][0]['name']);
+		}
+	}
+}
+
+$lastping = 0;
+$nextcheck = 0;
+$nextupdate = 0;
+$channel = '#launches';
+
+$ctx = stream_context_create(array(
+		'http' => array(
+			'timeout' => 1
+		)
+	)
+);
+
+connectToServer();
+
+$hype_message = "!!! ";
+
+for($i = 2; $i <= 15; $i++){
+	$hype_message .= color($i, "HYPE"). " !!! ";
+}
+
+while(1){
+	if(time() - $lastping > 60){
+		$lastping = time();
+		say('PING :irc.jc-mp.com');
+	}
+
+	if(time() > $nextcheck && isset($nicks)){
+		if(time() > $nextupdate){
+			$json = httpRequest('https://launchlibrary.net/1.2/launch/next/5');
+			$info = json_decode($json, true);
+
+			if(isset($info['launches'])){
+				$cached_launches = $info['launches'];
+			}
+
+			$nextupdate = time() + 300;
+		}
+
+		foreach($cached_launches AS $launch){
+			$seconds = strtotime($launch['isonet']) - time();
+			$id = $launch['id'];
+			$when = [172800, 86400, 43200, 28800, 14400, 7200, 3600, 1800, 900, 600, 300, 60];
+
+			if(isset($launch['vidURLs'][0]) && in_array($seconds, $when)){
+				if($seconds == 300){
+					msg('Hyping '.trim(implode(' ', $nicks)));
+					msg($hype_message);
+				}
+
+				sendLaunchMessage($launch, false);
+
+				if($seconds == 300){
+					msg($hype_message);
+				}
+			}
+
+			/*
+			if($seconds >= 0 && $seconds <= 10){
+				if($seconds == 0){
+					msg(color(3, 'Lift-off!'));
+				} else {
+					$color = $seconds + 3;
+					if($color == 9) $color = 14;
+					msg(color($color, 'T-'.$seconds));
+				}
+			}
+			*/
+		}
+
+		$nextcheck = time();
+	}
+
+	if ($result = @stream_select($_r = array( $socket ), $_e = NULL, $_w = NULL, 0, 200000)){
+		$info = stream_get_meta_data($socket);
+
+		if($info['eof'] == '1'){
+			connectToServer();
+		}
+
+		$line = explode("<br />", nl2br(fread($socket, 65000)));
+
+		foreach($line as $data){
+			if(!trim($data)) continue;
+
+			$eData = explode(" ", $data);
+			$command = strtolower(substr(@$eData[3], 1));
+			$param = trim(param($eData));
+
+			if($started == false && strstr($data,'MOTD')) {
+				say('MODE TMinus10 -hH+B');
+				sleep(1);
+				say('JOIN '.$channel);
+				say('SAJOIN TMinus10 '.$channel);
+
+				$started = true;
+			}
+
+			if($eData[1] == 353 && $eData[4] == $channel){
+				$nicks = explode(" ", trim(str_replace([":", "~", "&", "@", "%", "+", "Rico", "BobTheBuilder", "Old", "TMinus10", "Ahrotahntee"], "", $data)));
+
+				natsort($nicks);
+
+				unset($nicks[0]);
+				unset($nicks[1]);
+				unset($nicks[2]);
+				unset($nicks[3]);
+				unset($nicks[4]);
+			}
+
+			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launch"){
+				if(!trim($param) || !is_numeric($param)){
+					$url = 'https://launchlibrary.net/1.2/launch/next/1';
+				} else {
+					$url = 'https://launchlibrary.net/1.2/launch/'.$param;
+				}
+
+				$json = httpRequest($url);
+				$info = json_decode($json, true);
+
+				if(isset($info['status']) || !isset($info['launches'])){
+					msg('Unable to find a launch with that ID.');
+				} else {
+					$launch = $info['launches'][0];
+
+					sendLaunchMessage($launch, true);
+				}
+			}
+
+			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launches"){
+				if(!trim($param) || !is_numeric($param) || $param < 1 || $param > 10){
+					$amount = 3;
+				} else {
+					$amount = $param;
+				}
+
+				$launches = getNextLaunches($amount);
+
+				if(is_array($launches)){
+					foreach($launches AS $launch){
+						sendLaunchMessage($launch, false);
+					}
+				} else {
+					msg('Unable to get data.');
+				}
+			}
+
+			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!spacex"){
+				if(!trim($param) || !is_numeric($param) || $param < 1 || $param > 10){
+					$amount = 3;
+				} else {
+					$amount = $param;
+				}
+
+				$launches = getSpaceX($amount);
+
+				if(is_array($launches)){
+					foreach($launches AS $launch){
+						sendLaunchMessage($launch, false);
+					}
+				} else {
+					msg('Unable to get data.');
+				}
+			}
+
+			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!hype"){
+				msg($hype_message);
+			}
+
+			if($eData[0] == 'JOIN' || $eData[0] == 'QUIT' || $eData[0] == 'PART'){
+				say('WHO '.$channel);
+			}
+
+			if($eData[0] == 'PING') {
+				say('PONG '.$eData[1]);
+				say('WHO '.$channel);
+			}
+
+			if($eData[1] == 'KICK' && $eData[3] == 'TMinus10') {
+				say('JOIN '.$channel);
+			}
+		}
+	}
+}
