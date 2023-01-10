@@ -248,7 +248,6 @@ function getLaunch($launchID){
 }
 
 function getSpaceX($amount){
-	$date = date("Y-m-d", strtotime("-24 hours"));
 	$json = httpRequest("https://ll.thespacedevs.com/2.0.0/launch/?search=SpaceX&limit=".$limit);
 	$data = json_decode($json, true);
 
