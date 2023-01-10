@@ -282,7 +282,7 @@ function sendLaunchMessage($launch, $extended = false){
 	}
 
 	if(isset($launch['vidURLs'][0])){
-		$launch_message .= " - watch it at ".$launch['vidURLs'][0];
+		$launch_message .= " - watch it at ".$launch['vidURLs'][0]['url'];
 	}
 
 	msg($launch_message);
