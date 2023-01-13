@@ -226,8 +226,8 @@ function httpRequest($url){
 }
 
 function apiRequest($path, $querystring){
-	$server = "lldev.thespacedevs.com";
-	#$server = "ll.thespacedevs.com";
+	#$server = "lldev.thespacedevs.com";
+	$server = "ll.thespacedevs.com";
 	$version = "2.2.0";
 	$url = "https://$server/$version/$path$querystring";
 
@@ -269,7 +269,7 @@ function getLaunch($launchID){
 }
 
 function getSpaceX($amount){
-	$data = apiRequest('launch/', '?search=SpaceX&mode=detailed&limit='.$amount);
+	$data = apiRequest('launch/upcoming/', '?search=SpaceX&mode=detailed&filters=hide_recent_previous&limit='.$amount);
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -279,7 +279,7 @@ function getSpaceX($amount){
 }
 
 function sendLaunchMessage($launch, $extended = false){
-	$seconds = strtotime($launch['isonet']) - time();
+	$seconds = strtotime($launch['net']) - time();
 
 	$launch_message = color(7, "#".$launch['id'].": ");
 	$launch_message .= color(3, $launch['name']);
@@ -353,7 +353,7 @@ while(1){
 		}
 
 		foreach($cached_launches AS $launch){
-			$seconds = strtotime($launch['isonet']) - time();
+			$seconds = strtotime($launch['net']) - time();
 			$id = $launch['id'];
 			$when = [172800, 86400, 43200, 28800, 14400, 7200, 3600, 1800, 900, 600, 300, 60];
 
