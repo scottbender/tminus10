@@ -16,7 +16,7 @@ function getConnection(){
 	if($socket == false){
 		return false;
 	} else {
-		say('USER TMinus10 127.0.0.1 irc.jc-mp.com I\'m a bot');
+		say('USER TMinus10 127.0.0.1 irc.jc-mp.com :I\'m a bot');
 		say('NICK TMinus10');
 
 		$started = false;
