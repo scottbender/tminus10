@@ -418,7 +418,7 @@ while(1){
 				$started = true;
 			}
 
-			if($eData[1] == 353 && $eData[4] == $channel){
+			if(count($eData) > 1 && $eData[1] == 353 && $eData[4] == $channel){
 				$nicks = explode(" ", trim(str_replace([":", "~", "&", "@", "%", "+", "Rico", "BobTheBuilder", "Old", "TMinus10", "Ahrotahntee"], "", $data)));
 
 				natsort($nicks);
@@ -430,7 +430,7 @@ while(1){
 				unset($nicks[4]);
 			}
 
-			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launch"){
+			if(count($eData) > 1 && $eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launch"){
 				$info = [];
 
 				if(trim($param)){
@@ -457,7 +457,7 @@ while(1){
 				}
 			}
 
-			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launches"){
+			if(count($eData) > 1 && $eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!launches"){
 				if(!trim($param) || !is_numeric($param) || $param < 1 || $param > 10){
 					$amount = 3;
 				} else {
@@ -475,7 +475,7 @@ while(1){
 				}
 			}
 
-			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!spacex"){
+			if(count($eData) > 1 && $eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!spacex"){
 				if(!trim($param) || !is_numeric($param) || $param < 1 || $param > 10){
 					$amount = 3;
 				} else {
@@ -493,7 +493,7 @@ while(1){
 				}
 			}
 
-			if($eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!hype"){
+			if(count($eData) > 1 && $eData[1] == 'PRIVMSG' && $eData[2] == $channel && $command == "!hype"){
 				msg($hype_message);
 			}
 
@@ -506,7 +506,7 @@ while(1){
 				say('WHO '.$channel);
 			}
 
-			if($eData[1] == 'KICK' && $eData[3] == 'TMinus10') {
+			if(count($eData) > 1 && $eData[1] == 'KICK' && $eData[3] == 'TMinus10') {
 				say('JOIN '.$channel);
 			}
 		}
