@@ -233,13 +233,20 @@ function apiRequest($path, $querystring){
 
 	$response = httpRequest($url);
 	if(strstr($response, '<title>Server Error (500)</title>') !== FALSE){
+		echo "ERROR: 500 from $url\n";
 		return false;
 	}
 
 	$json = json_decode($response, true);
+	if($json === null){
+		echo "ERROR: could not parse json from $url\n";
+		return false;
+	}
 	# can fail with: {"detail":"Not found."}
 	# or: {"detail":"Request was throttled. Expected available in 350 seconds."}
 	if(isset($data['detail'])){
+		echo "ERROR: api returned error from $url\n";
+		echo '       detail='.$data['detail']."\n";
 		return false;
 	}
 
