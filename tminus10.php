@@ -255,7 +255,7 @@ function is_uuid($str){
 }
 
 function getNextLaunches($amount){
-	$data = apiRequest('launch/upcoming/', '?limit='.$amount);
+	$data = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit='.$amount);
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -269,7 +269,7 @@ function getLaunch($launchID){
 }
 
 function getSpaceX($amount){
-	$data = apiRequest('launch/upcoming/', '?search=SpaceX&mode=detailed&filters=hide_recent_previous&limit='.$amount);
+	$data = apiRequest('launch/upcoming/', '?search=SpaceX&mode=detailed&hide_recent_previous=true&limit='.$amount);
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -343,7 +343,7 @@ while(1){
 
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
-			$info = apiRequest('launch/upcoming/', '?limit=5');
+			$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit=5');
 
 			if(isset($info['results'])){
 				$cached_launches = $info['results'];
@@ -430,10 +430,10 @@ while(1){
 					if(is_uuid($param)){
 						$info = apiRequest('launch/'.$param.'/', '');
 					} else {
-						$info = apiRequest('launch/upcoming/', '?limit=1&search='.urlencode($param));
+						$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit=1&search='.urlencode($param));
 					}
 				} else {
-					$info = apiRequest('launch/upcoming/', '?limit=1');
+					$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit=1');
 				}
 
 				$launch = null;
