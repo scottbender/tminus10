@@ -262,7 +262,7 @@ function is_uuid($str){
 }
 
 function getNextLaunches($amount){
-	$data = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit='.$amount);
+	$data = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit='.$amount);
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -350,7 +350,7 @@ while(1){
 
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
-			$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit=5');
+			$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
 
 			if(isset($info['results'])){
 				$cached_launches = $info['results'];
@@ -437,10 +437,10 @@ while(1){
 					if(is_uuid($param)){
 						$info = apiRequest('launch/'.$param.'/', '');
 					} else {
-						$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit=1&search='.urlencode($param));
+						$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1&search='.urlencode($param));
 					}
 				} else {
-					$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&limit=1');
+					$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1');
 				}
 
 				$launch = null;
