@@ -288,13 +288,15 @@ function getSpaceX($amount){
 function sendLaunchMessage($launch, $extended = false){
 	$seconds = strtotime($launch['net']) - time();
 
-	$launch_message = color(7, "#".$launch['id'].": ");
+	$launch_message = color(7, "#{$launch['id']}:");
+	$launch_message .= ' ';
 	$launch_message .= color(3, $launch['name']);
 
 	if($seconds > 0){
 		$when = secondsToTime($seconds);
 
-		$launch_message .= color(4, " in ".$when);
+		$launch_message .= ' ';
+		$launch_message .= color(4, "in $when");
 	}
 
 	if(isset($launch['vidURLs'][0])){
@@ -305,19 +307,19 @@ function sendLaunchMessage($launch, $extended = false){
 
 	if($extended){
 		if(isset($launch['mission'])){
-			msg(color(2, 'Mission: ' ).$launch['mission']['description']);
+			msg(color(2, 'Mission:' ).' '.$launch['mission']['description']);
 		}
 
 		if(trim($launch['window_start']) && trim($launch['window_end'])){
 			if($launch['window_start'] == $launch['window_end']){
-				msg(color(2, 'Time: ' ).$launch['window_start']);
+				msg(color(2, 'Time:' ).' '.$launch['window_start']);
 			} else {
-				msg(color(2, 'Window: ' ).$launch['window_start'].' - '.$launch['window_end']);
+				msg(color(2, 'Window:' ).' '.$launch['window_start'].' - '.$launch['window_end']);
 			}
 		}
 
 		if(isset($launch['pad'])){
-			msg(color(2, 'Location: ' ).$launch['pad']['name']);
+			msg(color(2, 'Location:' ).' '.$launch['pad']['name']);
 		}
 	}
 }
