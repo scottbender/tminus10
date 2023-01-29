@@ -81,7 +81,7 @@ function connectToServer(){
 }
 
 function color($color, $text){
-	return chr(3).$color.$text.chr(3);
+	return chr(3).sprintf('%02d', $color).$text.chr(3);
 }
 
 function bold($text){
