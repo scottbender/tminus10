@@ -409,7 +409,10 @@ while(1){
 			if(!trim($data)) continue;
 
 			$eData = explode(" ", $data);
-			$command = strtolower(substr(@$eData[3], 1));
+			$command = '';
+			if(count($eData) >= 3 && $eData[1] == 'PRIVMSG'){
+				$command = strtolower(substr(@$eData[3], 1));
+			}
 			$param = trim(param($eData));
 
 			if($started == false && strstr($data,'MOTD')) {
