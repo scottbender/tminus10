@@ -393,7 +393,10 @@ while(1){
 		$nextcheck = time();
 	}
 
-	if ($result = @stream_select($_r = array( $socket ), $_e = NULL, $_w = NULL, 0, 200000)){
+	$_r = array($socket);
+	$_e = NULL;
+	$_w = NULL;
+	if ($result = @stream_select($_r, $_e, $_w, 0, 200000)){
 		$info = stream_get_meta_data($socket);
 
 		if($info['eof'] == '1'){
