@@ -3,7 +3,7 @@ function getConnection(){
 	global $socket;
 	global $started;
 
-        $ctx = stream_context_create( array( 'ssl' => array( 'verify_peer' => FALSE, 'allow_self_signed' => TRUE ), 'socket' => array('bindto' => '0:0') ) );
+        $ctx = stream_context_create( array( 'ssl' => array( 'verify_peer' => FALSE, 'allow_self_signed' => TRUE ) ) );
 
 	$socket = stream_socket_client(
 		'ssl://irc.oftc.net:6697' , $errno , $errstr,
