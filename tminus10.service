@@ -1,0 +1,18 @@
+[Unit]
+Description=tminus10 irc bot
+Wants=network.target
+After=network.target
+
+[Service]
+Type=forking
+Restart=on-failure
+RestartSec=3
+User=tminus10
+Group=tminus10
+WorkingDirectory=/opt/tminus10
+ExecStart=/usr/bin/screen -h 1024 -dmS tminus10 /opt/tminus10/tminus10.php
+ExecStop=/usr/bin/screen -p 0 -S tminus10 -X quit
+
+[Install]
+WantedBy=multi-user.target
+Alias=tminus10.service
