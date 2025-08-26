@@ -228,7 +228,7 @@ function httpRequest($url){
 function apiRequest($path, $querystring){
 	#$server = "lldev.thespacedevs.com";
 	$server = "ll.thespacedevs.com";
-	$version = "2.2.0";
+	$version = "2.3.0";
 	$url = "https://$server/$version/$path$querystring";
 
 	$response = httpRequest($url);
@@ -262,7 +262,7 @@ function is_uuid($str){
 }
 
 function getNextLaunches($amount){
-	$data = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit='.$amount);
+	$data = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit='.$amount);
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -272,11 +272,11 @@ function getNextLaunches($amount){
 }
 
 function getLaunch($launchID){
-	return apiRequest('launch/'.$launchID.'/', '');
+	return apiRequest('launches/'.$launchID.'/', '');
 }
 
 function getSpaceX($amount){
-	$data = apiRequest('launch/upcoming/', '?search=SpaceX&mode=detailed&hide_recent_previous=true&limit='.$amount);
+	$data = apiRequest('launches/upcoming/', '?search=SpaceX&mode=detailed&hide_recent_previous=true&limit='.$amount);
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -352,7 +352,7 @@ while(1){
 
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
-			$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
+			$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
 
 			if(isset($info['results'])){
 				$cached_launches = $info['results'];
@@ -443,12 +443,12 @@ while(1){
 
 				if(trim($param)){
 					if(is_uuid($param)){
-						$info = apiRequest('launch/'.$param.'/', '');
+						$info = apiRequest('launches/'.$param.'/', '');
 					} else {
-						$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1&search='.urlencode($param));
+						$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1&search='.urlencode($param));
 					}
 				} else {
-					$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1');
+					$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1');
 				}
 
 				$launch = null;
