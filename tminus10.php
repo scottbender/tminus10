@@ -228,7 +228,7 @@ function httpRequest($url){
 function apiRequest($path, $querystring){
 	#$server = "lldev.thespacedevs.com";
 	$server = "ll.thespacedevs.com";
-	$version = "2.2.0";
+	$version = "2.3.0";
 	$url = "https://$server/$version/$path$querystring";
 
 	$response = httpRequest($url);
@@ -262,7 +262,7 @@ function is_uuid($str){
 }
 
 function getNextLaunches($amount){
-	$data = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit='.$amount);
+	$data = apiRequest('launches/upcoming/', "?hide_recent_previous=true&mode=detailed&limit={$amount}");
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -272,11 +272,11 @@ function getNextLaunches($amount){
 }
 
 function getLaunch($launchID){
-	return apiRequest('launch/'.$launchID.'/', '');
+	return apiRequest("launches/{$launchID}/", '');
 }
 
 function getSpaceX($amount){
-	$data = apiRequest('launch/upcoming/', '?search=SpaceX&mode=detailed&hide_recent_previous=true&limit='.$amount);
+	$data = apiRequest('launches/upcoming/', "?search=SpaceX&mode=detailed&hide_recent_previous=true&limit={$amount}");
 
 	if(isset($data['results'])){
 		return $data['results'];
@@ -299,8 +299,8 @@ function sendLaunchMessage($launch, $extended = false){
 		$launch_message .= color(4, "in $when");
 	}
 
-	if(isset($launch['vidURLs'][0])){
-		$launch_message .= " - watch it at {$launch['vidURLs'][0]['url']}";
+	if(isset($launch['vid_urls'][0])){
+		$launch_message .= " - watch it at {$launch['vid_urls'][0]['url']}";
 	}
 
 	msg($launch_message);
@@ -352,7 +352,7 @@ while(1){
 
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
-			$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
+			$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
 
 			if(isset($info['results'])){
 				$cached_launches = $info['results'];
@@ -366,7 +366,7 @@ while(1){
 			$id = $launch['id'];
 			$when = [172800, 86400, 43200, 28800, 14400, 7200, 3600, 1800, 900, 600, 300, 60];
 
-			if(isset($launch['vidURLs'][0]) && in_array($seconds, $when)){
+			if(isset($launch['vid_urls'][0]) && in_array($seconds, $when)){
 				if($seconds == 300){
 					msg('Hyping '.trim(implode(' ', $nicks)));
 					msg($hype_message);
@@ -443,12 +443,12 @@ while(1){
 
 				if(trim($param)){
 					if(is_uuid($param)){
-						$info = apiRequest('launch/'.$param.'/', '');
+						$info = apiRequest("launches/{$param}/", '');
 					} else {
-						$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1&search='.urlencode($param));
+						$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1&search='.urlencode($param));
 					}
 				} else {
-					$info = apiRequest('launch/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1');
+					$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=1');
 				}
 
 				$launch = null;
