@@ -88,10 +88,49 @@ function bold($text){
 	return chr(2).$text.chr(2);
 }
 
+function irc2ansi($text) {
+	$ansi_from_irc = array(15, 0, 4, 2, 9, 1, 5, 3, 11, 10, 6, 14, 12, 13, 8, 7);
+
+	$output = "";
+	// map irc escape sequences to ansi escape sequences
+	// limited only to handle what the above functions generate
+	$in_color = false;
+	$in_bold = false;
+	for ($i = 0; $i < strlen($text); $i++) {
+		switch ($text[$i]) {
+			case chr(2):
+				if ($in_bold == true) {
+					$output .= "\e[22m";
+					$in_bold = false;
+				} else {
+					$output .= "\e[1m";
+					$in_bold = true;
+				}
+				break;
+			case chr(3):
+				if ($in_color == true) {
+					$output .= "\e[39m";
+					$in_color = false;
+				} else {
+					$output .= "\e[38;5;" . $ansi_from_irc[intval(substr($text, $i+1, 2))] . "m";
+					$i += 2;
+					$in_color = true;
+				}
+				break;
+			default:
+				$output .= $text[$i];
+				break;
+		}
+	}
+
+	return $output;
+}
+
 function say($data) {
 	global $socket;
 
 	fwrite($socket,$data."\r\n");
+	echo irc2ansi($data)."\n";
 }
 
 function param($array){
