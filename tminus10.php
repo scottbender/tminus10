@@ -382,9 +382,42 @@ function sendLaunchMessage($launch, $extended = false){
 	}
 }
 
+function sendUpdateMessage($launch, $update) {
+	$seconds = strtotime($launch['net']) - time();
+
+	$message = color(7, "#{$launch['id']}:");
+	$message .= ' ';
+	$message .= color(3, $launch['name']);
+
+	if ($seconds > 0) {
+		$when = secondsToTime($seconds);
+
+		$message .= ' ';
+		$message .= color(4, "in {$when}");
+	}
+
+	$message .= ": {$update['comment']}";
+
+	msg($message);
+}
+
+function sort_updates($a, $b) {
+	$key = 'created_on';
+	$d1 = new DateTime($a[$key]);
+	$d2 = new DateTime($b[$key]);
+	if ($d1 == $d2) {
+		return 0;
+	}
+	return ($d1 < $d2) ? -1 : 1;
+}
+
 $lastping = 0;
 $nextcheck = 0;
 $nextupdate = 0;
+$cached_launches = null;
+$last_cached_launches = null;
+$updates_announce_threshold = null;
+$updates_times = array();
 $channel = '#launches';
 
 $ctx = stream_context_create(array(
@@ -411,6 +444,7 @@ while(1){
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
 			$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
+			$updates_announce_threshold = time() - 300; // 5 minutes ago
 
 			if ($info !== false && isset($info['results'])) {
 				$last_cached_launches = $cached_launches;
@@ -422,6 +456,12 @@ while(1){
 				continue;
 			}
 
+			// sort updates for each launch
+			foreach ($cached_launches as &$launch) {
+				usort($launch['updates'], 'sort_updates');
+			}
+			unset($launch);
+
 			$nextupdate = time() + 300;
 		}
 
@@ -430,6 +470,35 @@ while(1){
 			$id = $launch['id'];
 			//          48h    24h    12h     8h     4h    2h    1h   30m  15m  10m   5m  1m
 			$when = [172800, 86400, 43200, 28800, 14400, 7200, 3600, 1800, 900, 600, 300, 60];
+
+			// post updates if the previous net time was less than 1 day away to limit spam
+			if ($last_cached_launches !== null) {
+				$last_found = false;
+				$last_launch = array();
+				foreach ($last_cached_launches as $last_launch) {
+					if ($last_launch['id'] == $launch['id']) {
+						$last_found = true;
+						break;
+					}
+				}
+				if ($last_found === true) {
+					$last_seconds = strtotime($last_launch['net']) - time() - 300;
+					if ($last_seconds < 86400) {
+						// process updates
+						foreach ($launch['updates'] as $update) {
+							$update_created = strtotime($update['created_on']);
+							if ($update_created > $updates_announce_threshold) {
+								sendUpdateMessage($launch, $update);
+								$updates_times[] = $update_created;
+							}
+						}
+						if (count($updates_times) > 0) {
+							rsort($updates_times);
+							$updates_announce_threshold = $updates_times[0];
+						}
+					}
+				}
+			}
 
 			if(isset($launch['vid_urls'][0]) && in_array($seconds, $when)){
 				if($seconds == 300){
