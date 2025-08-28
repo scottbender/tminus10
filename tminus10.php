@@ -363,9 +363,31 @@ function sendLaunchMessage($launch, $extended = false){
 	}
 }
 
+function sendUpdateMessage($launch, $update) {
+	$message = color(7, "#{$launch['id']}:");
+	$message .= ' ';
+	$message .= color(3, $launch['name']);
+	$message .= ': ';
+	$message .= $update['comment'];
+
+	msg($message);
+}
+
+function sort_updates($a, $b) {
+	$key = 'created_on';
+	$d1 = new DateTime($a[$key]);
+	$d2 = new DateTime($b[$key]);
+	if ($d1 == $d2) {
+		return 0;
+	}
+	return ($d1 < $d2) ? -1 : 1;
+}
+
 $lastping = 0;
 $nextcheck = 0;
 $nextupdate = 0;
+$updates_announce_threshold = null;
+$updates_times = array();
 $channel = '#launches';
 
 $ctx = stream_context_create(array(
@@ -392,9 +414,15 @@ while(1){
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
 			$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
+			$updates_announce_threshold = (new DateTime('now', new DateTimeZone('UTC')))->sub(DateInterval::createFromDateString('5 minutes'));
 
 			if(isset($info['results'])){
 				$cached_launches = $info['results'];
+			}
+
+			// sort updates for each launch
+			foreach ($cached_launches as &$launch) {
+				usort($launch['updates'], 'sort_updates');
 			}
 
 			$nextupdate = time() + 300;
@@ -404,6 +432,18 @@ while(1){
 			$seconds = strtotime($launch['net']) - time();
 			$id = $launch['id'];
 			$when = [172800, 86400, 43200, 28800, 14400, 7200, 3600, 1800, 900, 600, 300, 60];
+
+			foreach ($launch['updates'] as $update) {
+				$update_created = new DateTime($update['created_on']);
+				if ($update_created > $updates_announce_threshold) {
+					sendUpdateMessage($launch, $update);
+					$updates_times[] = $update_created;
+				}
+			}
+			if (count($updates_times) > 0) {
+				rsort($updates_times);
+				$updates_announce_threshold = $updates_times[0];
+			}
 
 			if(isset($launch['vidURLs'][0]) && in_array($seconds, $when)){
 				if($seconds == 300){
