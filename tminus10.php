@@ -359,7 +359,11 @@ function sendLaunchMessage($launch, $extended = false){
 
 		if(isset($launch['pad'])){
 			msg(color(2, 'Location:' ).' '.$launch['pad']['name']);
+			// TODO: could also include $launch['pad']['location']['name'] e.g. "Orbital Launch Mount A, SpaceX Starbase, TX, USA"
 		}
+
+		// TODO: could also include $launch['status']['name'] e.g. "Go for Launch" or "Launch Successful"
+		// TODO: maybe also (in the successful case, or if set?) include $launch['status']['description'] e.g. "The launch vehicle successfully inserted its payload(s) into the target orbit(s)."
 	}
 }
 
