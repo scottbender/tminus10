@@ -418,6 +418,11 @@ while(1){
 	if(time() > $nextcheck && isset($nicks)){
 		if(time() > $nextupdate){
 			$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
+			if ($info === false) {
+				// small delay and try again
+				sleep(10);
+				break;
+			}
 			$updates_announce_threshold = (new DateTime('now', new DateTimeZone('UTC')))->sub(DateInterval::createFromDateString('5 minutes'));
 
 			if(isset($info['results'])){
