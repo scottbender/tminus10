@@ -437,6 +437,12 @@ while(1){
 		say('PING :irc.jc-mp.com');
 	}
 
+	// time() is run a lot of times here, maybe it should only be run once and reused?
+
+	// sometimes the api request takes several seconds, and that can cause $when times to be missed
+	// to handle that some way to calculate the error between loop iterations should be added and
+	// then use that error (epsilon) during the test against $when, but only if it has been missed,
+	// not if it's still upcoming
 	if(time() > $nextcheck && isset($nicks)){
 		#echo ">> time() > \$nextcheck\n";
 		if(time() > $nextupdate){
