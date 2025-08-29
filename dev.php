@@ -444,7 +444,7 @@ while(1){
 			if ($info === false) {
 				// small delay and try again
 				sleep(10);
-				break;
+				continue;
 			}
 			$updates_announce_threshold = (new DateTime('now', new DateTimeZone('UTC')))->sub(DateInterval::createFromDateString('5 minutes'));
 
