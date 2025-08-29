@@ -424,6 +424,7 @@ while(1){
 			foreach ($cached_launches as &$launch) {
 				usort($launch['updates'], 'sort_updates');
 			}
+			unset($launch);
 
 			$nextupdate = time() + 300;
 		}
