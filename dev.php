@@ -397,6 +397,7 @@ $nextupdate = 0;
 $updates_announce_threshold = null;
 $updates_times = array();
 $channel = '#launches-test';
+$lastseconds = array();
 
 $ctx = stream_context_create(array(
 		'http' => array(
@@ -413,6 +414,23 @@ for($i = 2; $i <= 15; $i++){
 	$hype_message .= color($i, "HYPE"). " !!! ";
 }
 
+function var_dump_ret($mixed = null) {
+	ob_start();
+	var_dump($mixed);
+	$result = ob_get_contents();
+	ob_end_clean();
+	return $result;
+}
+
+function dbg_cached_launches($cached_launches, $annotation) {
+	file_put_contents("cached-launches-{$annotation}.txt", var_dump_ret($cached_launches));
+
+	echo ">> [$annotation] cached launches contains:\n";
+	for($i = 0; $i < count($cached_launches); $i++) {
+		echo ">> [$i] {$cached_launches[$i]['id']} {$cached_launches[$i]['name']}\n";
+	}
+}
+
 while(1){
 	if(time() - $lastping > 60){
 		$lastping = time();
@@ -423,6 +441,11 @@ while(1){
 		#echo ">> time() > \$nextcheck\n";
 		if(time() > $nextupdate){
 			$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
+			if ($info === false) {
+				// small delay and try again
+				sleep(10);
+				break;
+			}
 			$updates_announce_threshold = (new DateTime('now', new DateTimeZone('UTC')))->sub(DateInterval::createFromDateString('5 minutes'));
 
 			if(isset($info['results'])){
@@ -433,14 +456,27 @@ while(1){
 			foreach ($cached_launches as &$launch) {
 				usort($launch['updates'], 'sort_updates');
 			}
+			unset($launch);
 
 			$nextupdate = time() + 300;
 		}
 
+		$debug_string = "";
 		foreach($cached_launches AS $launch){
 			$seconds = strtotime($launch['net']) - time();
 			$id = $launch['id'];
 			$when = [172800, 86400, 43200, 28800, 14400, 7200, 3600, 1800, 900, 600, 300, 60];
+
+			if (array_key_exists($id, $lastseconds)) {
+				$expected_seconds = $lastseconds[$id] - 1;
+				if ($expected_seconds != $seconds) {
+					$delta_seconds = $seconds - $expected_seconds;
+					echo "!!! launch {$id} expected {$expected_seconds} but calculated {$seconds} (delta={$delta_seconds})\n";
+				}
+			}
+			$lastseconds[$id] = $seconds;
+
+			$debug_string .= "{$launch['id']} seconds: ".sprintf("% 8d", $seconds)." name: {$launch['name']}\n";
 
 			foreach ($launch['updates'] as $update) {
 				$update_created = new DateTime($update['created_on']);
@@ -479,6 +515,7 @@ while(1){
 			}
 			*/
 		}
+		file_put_contents("/tmp/dashboard.txt", $debug_string);
 
 		// this (and the `time() > $nextcheck` test) ensure we run no more than one time per second
 		$nextcheck = time();
