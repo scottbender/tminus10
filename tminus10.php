@@ -255,15 +255,20 @@ function httpRequest($url){
 		}
 	}
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_USERAGENT, "PHP");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-    $result = curl_exec($ch);
-    curl_close($ch);
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_USERAGENT, "PHP");
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+	$result = curl_exec($ch);
+	if ($result === false) {
+		$err = curl_errno($ch);
+		$str = curl_strerror($err);
+		echo "ERROR: curl: {$err}: {$str}\n";
+	}
+	curl_close($ch);
 
-    return $result;
+	return $result;
 }
 
 function apiRequest($path, $querystring){
@@ -273,6 +278,10 @@ function apiRequest($path, $querystring){
 	$url = "https://$server/$version/$path$querystring";
 
 	$response = httpRequest($url);
+	if ($response === false) {
+		// curl request failed, don't try to parse
+		return false;
+	}
 	if(strstr($response, '<title>Server Error (500)</title>') !== FALSE){
 		echo "ERROR: 500 from $url\n";
 		return false;
@@ -305,7 +314,7 @@ function is_uuid($str){
 function getNextLaunches($amount){
 	$data = apiRequest('launches/upcoming/', "?hide_recent_previous=true&mode=detailed&limit={$amount}");
 
-	if(isset($data['results'])){
+	if ($data !== false && isset($data['results'])) {
 		return $data['results'];
 	}
 
@@ -319,7 +328,7 @@ function getLaunch($launchID){
 function getSpaceX($amount){
 	$data = apiRequest('launches/upcoming/', "?search=SpaceX&mode=detailed&hide_recent_previous=true&limit={$amount}");
 
-	if(isset($data['results'])){
+	if ($data !== false && isset($data['results'])) {
 		return $data['results'];
 	}
 
@@ -395,7 +404,8 @@ while(1){
 		if(time() > $nextupdate){
 			$info = apiRequest('launches/upcoming/', '?hide_recent_previous=true&mode=detailed&limit=5');
 
-			if(isset($info['results'])){
+			if ($info !== false && isset($info['results'])) {
+				$last_cached_launches = $cached_launches;
 				$cached_launches = $info['results'];
 			}
 			// special case handling if the first api request fails
@@ -499,7 +509,9 @@ while(1){
 				}
 
 				$launch = null;
-				if(isset($info['count']) && $info['count'] > 0){
+				if ($info === false) {
+					msg('Unable to get data.');
+				} else if (isset($info['count']) && $info['count'] > 0) {
 					$launch = $info['results'][0];
 				} else if(isset($info['id'])){
 					$launch = $info;
