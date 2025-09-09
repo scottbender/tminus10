@@ -126,11 +126,13 @@ function irc2ansi($text) {
 	return $output;
 }
 
-function say($data) {
+function say($data, $hide_from_log=false) {
 	global $socket;
 
 	fwrite($socket,$data."\r\n");
-	echo irc2ansi($data)."\n";
+	if ($hide_from_log === false) {
+		echo irc2ansi($data)."\n";
+	}
 }
 
 function param($array){
@@ -386,7 +388,7 @@ for($i = 2; $i <= 15; $i++){
 while(1){
 	if(time() - $lastping > 60){
 		$lastping = time();
-		say('PING :irc.jc-mp.com');
+		say('PING :irc.jc-mp.com', true);
 	}
 
 	if(time() > $nextcheck && isset($nicks)){
