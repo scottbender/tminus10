@@ -398,6 +398,11 @@ while(1){
 			if(isset($info['results'])){
 				$cached_launches = $info['results'];
 			}
+			// special case handling if the first api request fails
+			if ($info === false && isset($cached_launches) === false) {
+				$nextcheck = time();
+				continue;
+			}
 
 			$nextupdate = time() + 300;
 		}
