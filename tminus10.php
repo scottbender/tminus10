@@ -410,6 +410,7 @@ while(1){
 		foreach($cached_launches AS $launch){
 			$seconds = strtotime($launch['net']) - time();
 			$id = $launch['id'];
+			//          48h    24h    12h     8h     4h    2h    1h   30m  15m  10m   5m  1m
 			$when = [172800, 86400, 43200, 28800, 14400, 7200, 3600, 1800, 900, 600, 300, 60];
 
 			if(isset($launch['vid_urls'][0]) && in_array($seconds, $when)){
