@@ -375,6 +375,10 @@ function sendLaunchMessage($launch, $extended = false){
 			}
 			msg(color(2, 'Location:')." {$location}");
 		}
+
+		if (isset($launch['status'])) {
+			msg(color(2, 'Status:')." {$launch['status']['name']}");
+		}
 	}
 }
 
