@@ -368,8 +368,12 @@ function sendLaunchMessage($launch, $extended = false){
 			}
 		}
 
-		if(isset($launch['pad'])){
-			msg(color(2, 'Location:' ).' '.$launch['pad']['name']);
+		if (isset($launch['pad'])) {
+			$location = $launch['pad']['name'];
+			if (isset($launch['pad']['location']['name'])) {
+				$location .= ", {$launch['pad']['location']['name']}";
+			}
+			msg(color(2, 'Location:')." {$location}");
 		}
 	}
 }
