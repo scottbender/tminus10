@@ -485,12 +485,24 @@ while(1){
 					$last_seconds = strtotime($last_launch['net']) - time() - 300;
 					if ($last_seconds < 86400) {
 						// process updates
+						$updates_times = [];
+						$combined_updates_message = '';
 						foreach ($launch['updates'] as $update) {
+							//$update_created = new DateTime($update['created_on']);
 							$update_created = strtotime($update['created_on']);
 							if ($update_created > $updates_announce_threshold) {
-								sendUpdateMessage($launch, $update);
+								if (strlen($combined_updates_message) > 0) {
+									if (preg_match('/[.!?;,]$/', $combined_updates_message) === false) {
+										$combined_updates_message .= ';';
+									}
+									$combined_updates_message .= ' ';
+								}
+								$combined_updates_message .= $update['comment'];
 								$updates_times[] = $update_created;
 							}
+						}
+						if (strlen($combined_updates_message) > 0) {
+							sendUpdateMessage($launch, $combined_updates_message);
 						}
 						if (count($updates_times) > 0) {
 							rsort($updates_times);
