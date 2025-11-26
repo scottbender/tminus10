@@ -382,7 +382,7 @@ function sendLaunchMessage($launch, $extended = false){
 	}
 }
 
-function sendUpdateMessage($launch, $update) {
+function sendUpdateMessage($launch, $update_message) {
 	$seconds = strtotime($launch['net']) - time();
 
 	$message = color(7, "#{$launch['id']}:");
@@ -396,7 +396,7 @@ function sendUpdateMessage($launch, $update) {
 		$message .= color(4, "in {$when}");
 	}
 
-	$message .= ": {$update['comment']}";
+	$message .= ": {$update_message}";
 
 	msg($message);
 }
