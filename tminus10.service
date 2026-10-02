@@ -4,14 +4,14 @@ Wants=network.target
 After=network.target
 
 [Service]
-Type=forking
+Type=simple
 Restart=on-failure
 RestartSec=3
 User=tminus10
 Group=tminus10
 WorkingDirectory=/opt/tminus10
-ExecStart=/usr/bin/screen -h 1024 -dmS tminus10 /opt/tminus10/tminus10.php
-ExecStop=/usr/bin/screen -p 0 -S tminus10 -X quit
+ExecStart=/opt/tminus10/tminus10.php
+ExecStop=/usr/bin/pkill -x tminus10.php
 
 [Install]
 WantedBy=multi-user.target
