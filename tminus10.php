@@ -653,13 +653,13 @@ while(1){
 				msg($hype_message);
 			}
 
-			if($eData[0] == 'JOIN' || $eData[0] == 'QUIT' || $eData[0] == 'PART'){
-				say('WHO '.$channel);
+			if($eData[1] == 'JOIN' || $eData[1] == 'QUIT' || $eData[1] == 'PART'){
+				say('NAMES '.$channel);
 			}
 
 			if($eData[0] == 'PING') {
 				say('PONG '.$eData[1]);
-				say('WHO '.$channel);
+				say('NAMES '.$channel);
 			}
 
 			if(count($eData) > 1 && $eData[1] == 'KICK' && $eData[3] == 'TMinus10') {
